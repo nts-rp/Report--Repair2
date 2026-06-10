@@ -134,7 +134,7 @@
 </div>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwlsLkS_vYJu4_TcjyuHa_vmSANdQIc-SklaujGRm0DqIW-7Dmgt1x5L5rHzrv05lk/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxjvPgqg-sIJS6RtUlSVgHpDI-qYkItPV3D8uHFN9fxYNnRcJIjX2z7wSlf7V4NWhY/exec";
   
   const i18n = {
     lo: {
@@ -202,10 +202,28 @@
 
   document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    currentUser = { name: document.getElementById('userName').value, position: "ຊ່າງຊ້ອມແປງ" };
-    localStorage.setItem('repair_system_repairer', JSON.stringify(currentUser));
-    showMainContent();
-    loadData(true);
+    const name = document.getElementById('userName').value.trim();
+    toggleLoader(true);
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+      toggleLoader(false);
+      if (data.status === 'success') {
+        currentUser = { name: name, position: "ຊ່າງຊ້ອມແປງ" };
+        localStorage.setItem('repair_system_repairer', JSON.stringify(currentUser));
+        showMainContent();
+        loadData(true);
+      } else {
+        alert(data.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      alert("ເກີດຂໍ້ຜິດພາດ: " + err.message);
+    });
   });
 
   function logout() {

@@ -34,6 +34,8 @@ function doPost(e) {
       message = editReport(params.id, params.issue, params.location, params.reporterName);
     } else if (params.action === 'delete') {
       message = deleteReport(params.id, params.reporterName);
+    } else if (params.action === 'login') {
+      message = validateLogin(params.name);
     } else {
       throw new Error("Invalid action.");
     }
@@ -43,6 +45,26 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// ຟັງຊັນກວດສອບການເຂົ້າລະບົບຈາກລາຍຊື່ໃນ Sheet "header"
+function validateLogin(name) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("SheetName");
+  if (!sheet) throw new Error("ບໍ່ພົບຂໍ້ມູນລາຍຊື່ໃນລະບົບ (Sheet 'header' ບໍ່ມີຢູ່).");
+  
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) throw new Error("ບໍ່ມີລາຍຊື່ໃນລະບົບ.");
+  
+  const data = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+  const inputName = name.trim().toLowerCase();
+  
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] && data[i][0].toString().trim().toLowerCase() === inputName) {
+      return "ເຂົ້າສູ່ລະບົບສຳເລັດ!";
+    }
+  }
+  throw new Error("ຊື່ ແລະ ນາມສະກຸນ ບໍ່ຖືກຕ້ອງ ຫຼື ບໍ່ມີໃນລະບົບ.");
 }
 
 // ຟັງຊັນສຳລັບລຶບລາຍງານໂດຍຜູ້ລາຍງານ
@@ -119,9 +141,9 @@ function editReport(id, issue, location, reporterName) {
 // ຟັງຊັນກວດສອບ ແລະ ສ້າງ Header ຖ້າຍັງບໍ່ມີ
 function initSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName("Sheet1");
+  let sheet = ss.getSheetByName("Sheet1"); // ໃຊ້ Sheet1 ສຳລັບຂໍ້ມູນລາຍງານ
   if (!sheet) {
-    sheet = ss.insertSheet("Sheet1");
+    sheet = ss.insertSheet("Sheet1"); // ສ້າງ Sheet1 ຖ້າບໍ່ມີ
   }
   if (sheet.getLastRow() === 0) {
     const headers = ["ລຳດັບ", "ລາຍການບັນຫາ", "ສະຖານທີ່", "ວັນທີລາຍງານ", "ຜູ້ລາຍງານ", "ວັນທີຮັບຊ້ອມແປງ", "ວັນທີຊ້ອມແປງສຳເລັດ", "ຜູ້ຊ້ອມແປງ", "ສະຖານະ"];
