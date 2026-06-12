@@ -1,6 +1,10 @@
 function doGet(e) {
   if (e.parameter.action === 'read') {
     try {
+      // ກວດສອບຊື່ຜູ້ໃຊ້ຖ້າມີການສົ່ງມາ ເພື່ອບັງຄັບອອກຈາກລະບົບຖ້າຊື່ຖືກລຶບ
+      if (e.parameter.user_name) {
+        validateLogin(e.parameter.user_name);
+      }
       const data = getData();
       return ContentService.createTextOutput(JSON.stringify({ status: 'success', data: data }))
         .setMimeType(ContentService.MimeType.JSON);
@@ -51,7 +55,7 @@ function doPost(e) {
 function validateLogin(name) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("SheetName");
-  if (!sheet) throw new Error("ບໍ່ພົບຂໍ້ມູນລາຍຊື່ໃນລະບົບ (Sheet 'header' ບໍ່ມີຢູ່).");
+  if (!sheet) throw new Error("ບໍ່ພົບຂໍ້ມູນລາຍຊື່ໃນລະບົບ (Sheet 'SheetName' ບໍ່ມີຢູ່).");
   
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) throw new Error("ບໍ່ມີລາຍຊື່ໃນລະບົບ.");

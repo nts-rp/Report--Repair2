@@ -134,7 +134,7 @@
 </div>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxjvPgqg-sIJS6RtUlSVgHpDI-qYkItPV3D8uHFN9fxYNnRcJIjX2z7wSlf7V4NWhY/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlQwMfaRE3rgyLu7NNYEJyxBlf8j3TDdwk8bA8mU6ayttvzEWqaSVxr8i_f8rz3W5n/exec";
   
   const i18n = {
     lo: {
@@ -245,12 +245,25 @@
     if (isFetching) return;
     if (showSpinner) toggleLoader(true);
     isFetching = true;
-    fetch(WEB_APP_URL + "?action=read")
+    
+    // ສົ່ງຊື່ຜູ້ໃຊ້ໄປກວດສອບພ້ອມກັບການດຶງຂໍ້ມູນ ເພື່ອເຊັກວ່າຖືກລຶບອອກຈາກ Sheet ຫຼືບໍ່
+    const url = WEB_APP_URL + "?action=read" + (currentUser ? "&user_name=" + encodeURIComponent(currentUser.name) : "");
+
+    fetch(url)
       .then(res => res.json())
       .then(json => {
         isFetching = false;
         if (showSpinner) toggleLoader(false);
-        if (json.status === 'error') return;
+        
+        if (json.status === 'error') {
+          // ຖ້າຊື່ບໍ່ມີໃນລະບົບແລ້ວ ໃຫ້ບັງຄັບອອກຈາກລະບົບທັນທີ
+          if (json.message.includes("ບໍ່ມີໃນລະບົບ") || json.message.includes("ບໍ່ຖືກຕ້ອງ")) {
+            alert(json.message);
+            logout();
+            return;
+          }
+          return;
+        }
         
         const data = json.data.map(row => {
           const toDDMM = (str) => {
